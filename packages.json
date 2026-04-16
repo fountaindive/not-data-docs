@@ -1,0 +1,15 @@
+{
+  "packages": [
+    {
+      "name": "my-package",
+      "builds": [
+        {
+          "buildNumber": "20260415120000"
+        },
+        {
+          "buildNumber": "20260414090000"
+        }
+      ]
+    }
+  ]
+}

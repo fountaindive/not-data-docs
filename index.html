@@ -3,45 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>not-data-docs</title>
+    <title>Documentation Hub</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        ul {
-            list-style-type: none;
+        * {
+            margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
-        li {
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
             margin-bottom: 10px;
+            font-size: 2.5em;
         }
-        a {
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .package-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .package-card {
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            background-color: #fff;
+        }
+
+        .package-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .package-name {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .builds-list {
+            list-style: none;
+        }
+
+        .build-item {
+            margin-bottom: 8px;
+        }
+
+        .build-link {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
             text-decoration: none;
-            color: #007bff;
+            color: #333;
+            transition: background-color 0.2s ease;
         }
-        a:hover {
-            text-decoration: underline;
+
+        .build-link:hover {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .build-number {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            flex-grow: 1;
+        }
+
+        .build-badge {
+            background-color: #27ae60;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            margin-left: 10px;
+        }
+
+        .build-link:hover .build-badge {
+            background-color: #2c3e50;
+        }
+
+        .latest-badge {
+            background-color: #e74c3c;
+        }
+
+        .no-builds {
+            color: #95a5a6;
+            font-style: italic;
+            padding: 10px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 20px;
+            margin-bottom: 30px;
+            border: 2px solid #e1e4e8;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #3498db;
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1>Documentation Hub</h1>
+        <p class="subtitle">Browse documentation for all packages</p>
 
-    <h1>not-data-docs</h1>
-    
-    <p>List of packages/documents:</p>
-    
-    <ul>
-        <li>
-            <a href="pkg1/10122025.115516">pkg1/10122025.115516/</a>
-        </li>
-        <li>
-            <a href="pkg1/10122025.115558">pkg1/10122025.115558/</a>
-        </li>
-        <li>
-            <a href="pkg1/10122025.115727">pkg1/10122025.115727/</a>
-        </li>
-    </ul>
+        <input type="text" class="search-box" id="searchBox" placeholder="Search packages...">
 
+        <div class="package-grid" id="packageGrid">
+            <!-- Packages will be loaded dynamically from packages.json -->
+        </div>
+    </div>
+
+    <script>
+        const packageGrid = document.getElementById('packageGrid');
+        const searchBox = document.getElementById('searchBox');
+
+        // Load and display packages from JSON file
+        async function loadPackages() {
+            try {
+                const response = await fetch('packages.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                renderPackages(data.packages);
+            } catch (error) {
+                console.error('Error loading packages:', error);
+                packageGrid.innerHTML = '<p class="no-builds">Error loading packages data. Please refresh the page.</p>';
+            }
+        }
+
+        // Render packages to the grid
+        function renderPackages(packages) {
+            packageGrid.innerHTML = '';
+
+            if (!packages || packages.length === 0) {
+                packageGrid.innerHTML = '<p class="no-builds">No packages available.</p>';
+                return;
+            }
+
+            packages.forEach(pkg => {
+                const card = createPackageCard(pkg);
+                packageGrid.appendChild(card);
+            });
+        }
+
+        // Create a package card element
+        function createPackageCard(pkg) {
+            const card = document.createElement('div');
+            card.className = 'package-card';
+            card.setAttribute('data-package', pkg.name);
+
+            const title = document.createElement('h2');
+            title.className = 'package-name';
+            title.textContent = pkg.name;
+            card.appendChild(title);
+
+            if (!pkg.builds || pkg.builds.length === 0) {
+                const noBuilds = document.createElement('p');
+                noBuilds.className = 'no-builds';
+                noBuilds.textContent = 'No builds available';
+                card.appendChild(noBuilds);
+                return card;
+            }
+
+            const buildsList = document.createElement('ul');
+            buildsList.className = 'builds-list';
+
+            const latestBuildNumber = pkg.builds.reduce((max, b) => b.buildNumber > max ? b.buildNumber : max, '');
+
+            pkg.builds.forEach(build => {
+                const buildItem = document.createElement('li');
+                buildItem.className = 'build-item';
+
+                const buildLink = document.createElement('a');
+                buildLink.href = `docs/${pkg.name}/${build.buildNumber}/index.html`;
+                buildLink.className = 'build-link';
+
+                const buildNumber = document.createElement('span');
+                buildNumber.className = 'build-number';
+                buildNumber.textContent = build.buildNumber;
+                buildLink.appendChild(buildNumber);
+
+                if (build.buildNumber === latestBuildNumber) {
+                    const buildBadge = document.createElement('span');
+                    buildBadge.className = 'build-badge latest-badge';
+                    buildBadge.textContent = 'Latest';
+                    buildLink.appendChild(buildBadge);
+                }
+
+                buildItem.appendChild(buildLink);
+                buildsList.appendChild(buildItem);
+            });
+
+            card.appendChild(buildsList);
+            return card;
+        }
+
+        // Search functionality
+        searchBox.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const packageCards = document.querySelectorAll('.package-card');
+
+            packageCards.forEach(card => {
+                const packageName = card.getAttribute('data-package').toLowerCase();
+                if (packageName.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Load packages when page loads
+        loadPackages();
+    </script>
 </body>
 </html>
