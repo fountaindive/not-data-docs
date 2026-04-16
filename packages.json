@@ -10,6 +10,14 @@
           "buildNumber": "20260414090000"
         }
       ]
+    },
+    {
+      "name": "some-new-python-lib",
+      "builds": [
+        {
+          "buildNumber": "20260101000000"
+        }
+      ]
     }
   ]
 }
