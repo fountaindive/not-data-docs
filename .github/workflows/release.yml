@@ -1,32 +1,39 @@
 name: Controlled Release
 
 on:
-  push:
-    tags:
-      - 'v*' # Triggers the workflow when a tag starting with 'v' is pushed (e.g., v1.0.0)
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g., v0.2.0)"
+        required: true
+        type: string
+
+# Ensure the GitHub token has permission to create tags and releases
+permissions:
+  contents: write
 
 jobs:
-  # Job 1: Build and Draft (Optional, but good practice)
+  # Job 1: Simulates your build/test phase
   build:
     runs-on: ubuntu-latest
     outputs:
-      tag_name: ${{ github.ref_name }}
+      tag_name: ${{ inputs.version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Assets
+      - name: Run Build/Test
         run: |
-          echo "Building your application..."
-          # Add your build commands here (e.g., npm run build)
+          echo "Running production build and tests for ${{ inputs.version }}..."
+          # You can add npm run build, docker build, etc. here
 
-  # Job 2: The Controlled Release Job
+  # Job 2: Pauses for approval before creating the release
   publish-release:
     needs: build
     runs-on: ubuntu-latest
     
-    # ⚠️ This is the magic line that triggers the approval requirement
-    environment: release-approval
+    # ⚠️ This must match the exact name of the environment you created in Step 1
+    environment: release-approval 
 
     steps:
       - name: Checkout code
@@ -38,7 +45,10 @@ jobs:
           tag_name: ${{ needs.build.outputs.tag_name }}
           name: Release ${{ needs.build.outputs.tag_name }}
           body: |
-            Automated release approved via GitHub Actions.
+            ## Release Notes
+            Automated release generated via GitHub Actions.
+            
+            Approved and deployed by the repository review team.
           draft: false
           prerelease: false
         env:
