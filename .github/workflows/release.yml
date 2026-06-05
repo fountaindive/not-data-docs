@@ -1,38 +1,34 @@
 name: Controlled Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to release (e.g., v0.2.0)"
-        required: true
-        type: string
+  push:
+    tags:
+      - 'v*' # Triggers automatically when any tag starting with 'v' is pushed
 
-# Ensure the GitHub token has permission to create tags and releases
 permissions:
-  contents: write
+  contents: write # Gives the default token permission to create the release page
 
 jobs:
-  # Job 1: Simulates your build/test phase
+  # Job 1: Runs your standard build/test verification immediately upon tag push
   build:
     runs-on: ubuntu-latest
     outputs:
-      tag_name: ${{ inputs.version }}
+      tag_name: ${{ github.ref_name }} # Grabs the tag name that was pushed
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Run Build/Test
         run: |
-          echo "Running production build and tests for ${{ inputs.version }}..."
-          # You can add npm run build, docker build, etc. here
+          echo "Verifying code for tag ${{ github.ref_name }}..."
+          # Add your test or build steps here
 
-  # Job 2: Pauses for approval before creating the release
+  # Job 2: Pauses for human approval BEFORE creating the GitHub Release page
   publish-release:
     needs: build
     runs-on: ubuntu-latest
     
-    # ⚠️ This must match the exact name of the environment you created in Step 1
+    # 🛑 This hooks into your GitHub Environment to require an approval click
     environment: release-approval 
 
     steps:
@@ -48,8 +44,8 @@ jobs:
             ## Release Notes
             Automated release generated via GitHub Actions.
             
-            Approved and deployed by the repository review team.
+            Approved by the repository review team.
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # No special admin tokens needed anymore!
