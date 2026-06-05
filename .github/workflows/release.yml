@@ -1,0 +1,45 @@
+name: Controlled Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers the workflow when a tag starting with 'v' is pushed (e.g., v1.0.0)
+
+jobs:
+  # Job 1: Build and Draft (Optional, but good practice)
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ github.ref_name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Assets
+        run: |
+          echo "Building your application..."
+          # Add your build commands here (e.g., npm run build)
+
+  # Job 2: The Controlled Release Job
+  publish-release:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    # ⚠️ This is the magic line that triggers the approval requirement
+    environment: release-approval
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.build.outputs.tag_name }}
+          name: Release ${{ needs.build.outputs.tag_name }}
+          body: |
+            Automated release approved via GitHub Actions.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
